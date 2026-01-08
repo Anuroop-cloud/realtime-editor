@@ -10,27 +10,33 @@
     <textarea id="editor" rows="15" cols="80"></textarea>
 
     <script src="/socket.io/socket.io.js"></script>
-<script>
-  const socket = io();
-  const editor = document.getElementById("editor");
+    <script>
+    const socket = io();
+    const editor = document.getElementById("editor");
 
-  let isRemoteUpdate = false;
+    let isRemoteUpdate = false;
+    let timeout;
 
-  socket.on("init", (text) => {
-    editor.value = text;
-  });
+    socket.on("init", (text) => {
+        editor.value = text;
+    });
 
-  editor.addEventListener("input", () => {
-    if (isRemoteUpdate) return;
-    socket.emit("text-change", editor.value);
-  });
+    editor.addEventListener("input", () => {
+        if (isRemoteUpdate) return;
 
-  socket.on("text-change", (text) => {
-    isRemoteUpdate = true;
-    editor.value = text;
-    isRemoteUpdate = false;
-  });
-</script>
+        clearTimeout(timeout);
+
+        timeout = setTimeout(() => {
+        socket.emit("text-change", editor.value);
+        }, 100);
+    });
+
+    socket.on("text-change", (text) => {
+        isRemoteUpdate = true;
+        editor.value = text;
+        isRemoteUpdate = false;
+    });
+    </script>
 
 </body>
 </html>
