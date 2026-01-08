@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realtime Editor MVP</title>
+</head>
+<body>
+    <h2>Realtime Editor MVP</h2>
+    <textarea id="editor" rows="15" cols="80"></textarea>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const editor = document.getElementById("editor");
+
+        socket.on("init",(text)=>{
+            editor.value = text;
+        });
+
+        editor.addEventListener("input",()=>{
+            socket.emit("text-change", editor.value);
+        });
+
+        socket.on("text-change",(text)=>{
+            editor.value=text;
+        });
+    </script>
+</body>
+</html>
