@@ -1,3 +1,4 @@
+const { disconnect } = require("cluster");
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -25,6 +26,17 @@ io.on("connection", (socket) => {
     console.log("User disconnected:", socket.id);
   });
 });
+
+let users=0;
+io.on("connection",(socket)=>{
+    users++;
+    io.emit("users",users);
+
+    socket.on("disconnect",()=>{
+        users--;
+        io.emit("users",users);
+    })
+})
 
 server.listen(3000, () => {
   console.log("Server running at http://localhost:3000");
