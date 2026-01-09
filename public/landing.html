@@ -43,5 +43,12 @@
 <body>
   <h1>CollabDoc</h1>
   <button onclick="window.location.href='/login.html'">Login</button>
+
+  <script>
+    const user = sessionStorage.getItem("user");
+    if (user) {
+      window.location.href = "/home";
+    }
+  </script>
 </body>
 </html>

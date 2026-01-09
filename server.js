@@ -59,7 +59,13 @@ io.on("connection", (socket) => {
     const createdNow = !documents[docId];
 
     if (createdNow) {
-      documents[docId] = { content: "", creator: username, viewers: new Set(), passkey: generatePasskey() };
+      documents[docId] = {
+        content: "",
+        creator: username,
+        viewers: new Set(),
+        // Preserve provided passkey (e.g., after restart) or generate a new one
+        passkey: passkey || generatePasskey()
+      };
     }
 
     const doc = documents[docId];
@@ -77,7 +83,8 @@ io.on("connection", (socket) => {
     socket.docId = docId;
     socket.username = username;
 
-    const creatorPasskey = username === doc.creator ? doc.passkey : undefined;
+    // Show passkey to creator (or anyone who proved knowledge of it)
+    const creatorPasskey = (username === doc.creator || passkey === doc.passkey) ? doc.passkey : undefined;
 
     socket.emit("load-doc", { content: doc.content, creator: doc.creator, viewers: doc.viewers.size, passkey: creatorPasskey });
     socket.to(docId).emit("user-joined", username);

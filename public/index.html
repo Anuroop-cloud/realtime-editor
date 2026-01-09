@@ -26,6 +26,7 @@
 
 <body>
   <h2>Collab Doc</h2>
+  <p id="docName" style="font-weight: bold; margin-top: 4px;">Document: -</p>
 
   <p>Viewers: <span id="users">0</span></p>
   <p>Logged in as: <span id="currentUser">-</span></p>
@@ -57,6 +58,7 @@
     currentUserEl.innerText = username || "-";
 
     const docId = window.location.pathname.split("/").pop();
+    document.getElementById("docName").innerText = `Document: ${decodeURIComponent(docId)}`;
     let storedPasskey = sessionStorage.getItem(`passkey:${docId}`) || "";
 
     let isRemoteUpdate = false;
@@ -124,12 +126,12 @@
       if (!isDeleting) {
         alert("Document was deleted by the creator. You'll be redirected to home.");
       }
-      window.location.href = "/";
+      window.location.href = "/home";
     });
 
     leaveBtn.onclick = () => {
       socket.emit("leave-doc", { docId, username });
-      window.location.href = "/";
+      window.location.href = "/home";
     };
 
     deleteBtn.onclick = async () => {
@@ -153,7 +155,7 @@
       }
 
       alert("Document deleted");
-      window.location.href = "/";
+      window.location.href = "/home";
     };
 
     logoutBtn.onclick = () => {
