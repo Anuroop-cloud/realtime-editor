@@ -1,4 +1,3 @@
-const { disconnect } = require("cluster");
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -9,34 +8,38 @@ const io = new Server(server);
 
 app.use(express.static("public"));
 
-let sharedText = "";
+const documents = {};
+let users = 0;
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
-  socket.emit("init", sharedText);
+  users++;
+  io.emit("users", users);
 
-  socket.on("text-change", (data) => {
-    if (typeof data !== "string") return;
-    sharedText = data;
-    socket.broadcast.emit("text-change", data);
+  socket.on("join-doc", (docId) => {
+    if (!documents[docId]) {
+      documents[docId] = { content: "" };
+    }
+
+    socket.join(docId);
+    socket.emit("load-doc", documents[docId].content);
+  });
+
+  socket.on("text-change", ({ docId, text }) => {
+    if (!documents[docId]) return;
+
+    documents[docId].content = text;
+    socket.to(docId).emit("text-change", text);
   });
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
+
+    users--;
+    io.emit("users", users);
   });
 });
-
-let users=0;
-io.on("connection",(socket)=>{
-    users++;
-    io.emit("users",users);
-
-    socket.on("disconnect",()=>{
-        users--;
-        io.emit("users",users);
-    })
-})
 
 server.listen(3000, () => {
   console.log("Server running at http://localhost:3000");

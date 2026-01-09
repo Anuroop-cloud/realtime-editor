@@ -26,34 +26,32 @@
     <script>
         const socket = io();
         const editor = document.getElementById("editor");
+        const usersEl = document.getElementById("users");
 
-        let isRemoteUpdate = false;
-        let timeout;
+        const docId = "default"; // both tabs MUST use same docId
 
-        socket.on("init", (text) => {
+        socket.emit("join-doc", docId);
+
+        socket.on("users", (count) => {
+            usersEl.innerText = count;
+        });
+
+        socket.on("load-doc", (text) => {
             editor.value = text;
         });
 
         editor.addEventListener("input", () => {
-            if (isRemoteUpdate) return;
-
-            clearTimeout(timeout);
-
-            timeout = setTimeout(() => {
-            socket.emit("text-change", editor.value);
-            }, 100);
+            socket.emit("text-change", {
+            docId,
+            text: editor.value
+            });
         });
 
         socket.on("text-change", (text) => {
-            isRemoteUpdate = true;
             editor.value = text;
-            isRemoteUpdate = false;
-        });
-
-        socket.on("users", (count) => {
-            document.getElementById("users").innerText = count;
         });
     </script>
+
 
 </body>
 </html>
