@@ -36,6 +36,8 @@ app.delete("/doc/:id", (req, res) => {
   }
 
   delete documents[id];
+  io.to(id).emit("doc-deleted");
+  io.socketsLeave(id);
   return res.sendStatus(200);
 });
 

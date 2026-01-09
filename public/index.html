@@ -56,6 +56,7 @@
     const docId = window.location.pathname.split("/").pop();
 
     let isRemoteUpdate = false;
+    let isDeleting = false;
 
     socket.emit("join-doc", { docId, username });
 
@@ -98,12 +99,20 @@
       console.log(`${name} left`);
     });
 
+    socket.on("doc-deleted", () => {
+      if (!isDeleting) {
+        alert("Document was deleted by the creator. You'll be redirected to home.");
+      }
+      window.location.href = "/";
+    });
+
     leaveBtn.onclick = () => {
       socket.emit("leave-doc", { docId, username });
       window.location.href = "/";
     };
 
     deleteBtn.onclick = async () => {
+      isDeleting = true;
       const res = await fetch(`/doc/${docId}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
@@ -112,11 +121,13 @@
 
       if (res.status === 403) {
         alert("Only the creator can delete this document");
+        isDeleting = false;
         return;
       }
 
       if (!res.ok) {
         alert("Unable to delete document");
+        isDeleting = false;
         return;
       }
 
