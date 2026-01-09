@@ -54,6 +54,7 @@
   <div class="section">
     <h2>Join a Document</h2>
     <input id="docId" placeholder="Enter document code" />
+    <input id="docPasskey" placeholder="Enter passkey" />
     <button id="join">Join</button>
   </div>
 
@@ -88,10 +89,18 @@
 
     document.getElementById("join").onclick = () => {
       const id = document.getElementById("docId").value.trim();
+      const passkey = document.getElementById("docPasskey").value.trim();
       if (!id) {
         alert("Enter a document code");
         return;
       }
+
+      if (!passkey) {
+        alert("Enter a passkey");
+        return;
+      }
+
+      sessionStorage.setItem(`passkey:${id}`, passkey);
 
       window.location.href = `/doc/${id}`;
     };

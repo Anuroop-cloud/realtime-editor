@@ -11,6 +11,10 @@ app.use(express.static("public", { index: false }));
 
 const documents = {};
 
+function generatePasskey() {
+  return Math.random().toString(36).slice(2, 8).toUpperCase();
+}
+
 function updateViewerCount(docId) {
   const doc = documents[docId];
   if (!doc) return;
@@ -47,13 +51,21 @@ app.get("/", (req, res) => {
 
 
 io.on("connection", (socket) => {
-  socket.on("join-doc", ({ docId, username }) => {
-    if (!documents[docId]) {
-      documents[docId] = { content: "", creator: username, viewers: new Set() };
+  socket.on("join-doc", ({ docId, username, passkey }) => {
+    const createdNow = !documents[docId];
+
+    if (createdNow) {
+      documents[docId] = { content: "", creator: username, viewers: new Set(), passkey: generatePasskey() };
     }
 
     const doc = documents[docId];
     if (!doc.viewers) doc.viewers = new Set();
+
+    // Require passkey for existing docs (including creator re-joins)
+    if (!createdNow && doc.passkey && passkey !== doc.passkey) {
+      socket.emit("join-denied", "Invalid passkey");
+      return;
+    }
 
     doc.viewers.add(socket.id);
 
@@ -61,7 +73,9 @@ io.on("connection", (socket) => {
     socket.docId = docId;
     socket.username = username;
 
-    socket.emit("load-doc", { content: doc.content, creator: doc.creator, viewers: doc.viewers.size });
+    const creatorPasskey = username === doc.creator ? doc.passkey : undefined;
+
+    socket.emit("load-doc", { content: doc.content, creator: doc.creator, viewers: doc.viewers.size, passkey: creatorPasskey });
     socket.to(docId).emit("user-joined", username);
     updateViewerCount(docId);
   });

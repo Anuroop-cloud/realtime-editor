@@ -29,6 +29,7 @@
 
   <p>Viewers: <span id="users">0</span></p>
   <p>Logged in as: <span id="currentUser">-</span></p>
+  <p id="passkeyRow" style="display: none;">Passkey (share with collaborators): <strong id="passkey"></strong></p>
 
   <button id="logout">Logout</button>
   <button id="leave">Leave Room</button>
@@ -45,6 +46,8 @@
     const deleteBtn = document.getElementById("delete");
     const logoutBtn = document.getElementById("logout");
     const currentUserEl = document.getElementById("currentUser");
+    const passkeyRow = document.getElementById("passkeyRow");
+    const passkeyEl = document.getElementById("passkey");
 
     const username = sessionStorage.getItem("user");
     if (!username) {
@@ -54,22 +57,29 @@
     currentUserEl.innerText = username || "-";
 
     const docId = window.location.pathname.split("/").pop();
+    let storedPasskey = sessionStorage.getItem(`passkey:${docId}`) || "";
 
     let isRemoteUpdate = false;
     let isDeleting = false;
 
-    socket.emit("join-doc", { docId, username });
+    socket.emit("join-doc", { docId, username, passkey: storedPasskey });
 
     socket.on("users", (count) => {
       usersEl.innerText = count;
     });
 
-    socket.on("load-doc", ({ content, creator, viewers }) => {
+    socket.on("load-doc", ({ content, creator, viewers, passkey }) => {
       editor.value = content || "";
       usersEl.innerText = viewers || 0;
 
       const isCreator = creator && creator === username;
       deleteBtn.style.display = isCreator ? "inline-block" : "none";
+
+      if (isCreator && passkey) {
+        passkeyRow.style.display = "block";
+        passkeyEl.innerText = passkey;
+        sessionStorage.setItem(`passkey:${docId}`, passkey);
+      }
     });
 
     socket.on("viewers", (count) => {
@@ -97,6 +107,17 @@
 
     socket.on("user-left", (name) => {
       console.log(`${name} left`);
+    });
+
+    socket.on("join-denied", (message) => {
+      const retry = prompt(message || "Passkey required. Enter passkey to join:") || "";
+      if (!retry) {
+        sessionStorage.removeItem(`passkey:${docId}`);
+        window.location.href = "/";
+        return;
+      }
+      sessionStorage.setItem(`passkey:${docId}`, retry);
+      window.location.reload();
     });
 
     socket.on("doc-deleted", () => {

@@ -9,6 +9,7 @@
     <h2>Join a Document</h2>
 
     <input id="docId" placeholder="Enetr doc ID"/>
+    <input id="docPasskey" placeholder="Enter passkey"/>
     <button id="join">Join</button>
 
     <script>
@@ -19,8 +20,12 @@
 
         document.getElementById("join").onclick=()=>{
             const docId = document.getElementById("docId").value.trim();
+            const passkey = document.getElementById("docPasskey").value.trim();
 
             if (!docId) return alert("Enter doc ID");
+            if (!passkey) return alert("Enter passkey");
+
+            sessionStorage.setItem(`passkey:${docId}`, passkey);
             window.location.href = `/doc/${docId}`;
         };
     </script>
