@@ -10,13 +10,18 @@
     <input id="username" placeholder="Enter username" />
     <button id="login">continue</button>
     <script>
+        const existingUser = localStorage.getItem("user");
+        if (existingUser) {
+            window.location.href = "/";
+        }
+
         document.getElementById("login").onclick = () =>{
             const username = document.getElementById("username").value.trim();
 
             if(!username) return alert("Enter username");
 
             localStorage.setItem("user",username);
-            window.location.href = "/join.html";
+            window.location.href = "/";
         };
     </script>
 </body>

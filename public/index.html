@@ -30,7 +30,7 @@
   <p>Connected users: <span id="users">0</span></p>
 
   <button id="logout">Logout</button>
-  <button id="delete">Delete Document</button>
+  <button id="leave">Leave Room</button>
 
   <textarea id="editor" rows="15"></textarea>
 
@@ -39,7 +39,7 @@
     const socket = io();
     const editor = document.getElementById("editor");
     const usersEl = document.getElementById("users");
-    const deleteBtn = document.getElementById("delete");
+    const leaveBtn = document.getElementById("leave");
     const logoutBtn = document.getElementById("logout");
 
     const username = localStorage.getItem("user");
@@ -84,9 +84,8 @@
       console.log(`${name} left`);
     });
 
-    deleteBtn.onclick = async () => {
-      await fetch(`/doc/${docId}`, { method: "DELETE" });
-      alert("Document deleted");
+    leaveBtn.onclick = () => {
+      socket.emit("leave-doc", { docId, username });
       window.location.href = "/";
     };
 

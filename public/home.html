@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Document Lobby</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    input {
+      font-size: 16px;
+      padding: 8px;
+      width: 70%;
+    }
+
+    button {
+      font-size: 16px;
+      padding: 8px 12px;
+      margin-left: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="section" id="userBar" style="display:none; margin-bottom: 20px;">
+    <div>Logged in as <strong id="username"></strong></div>
+    <button id="logout">Logout</button>
+  </div>
+
+  <!-- CREATE ROOM -->
+  <div class="section">
+    <h2>Create a Document</h2>
+    <input id="docName" placeholder="Enter document name" />
+    <button id="create">Create</button>
+  </div>
+
+  <!-- JOIN ROOM -->
+  <div class="section">
+    <h2>Join a Document</h2>
+    <input id="docId" placeholder="Enter document code" />
+    <button id="join">Join</button>
+  </div>
+
+  <script>
+    const currentUser = localStorage.getItem("user");
+    if (!currentUser) {
+      window.location.href = "/login.html";
+    } else {
+      document.getElementById("username").innerText = currentUser;
+      document.getElementById("userBar").style.display = "block";
+    }
+
+    // helper to make URL-safe doc IDs
+    function slugify(text) {
+      return text
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+    }
+
+    document.getElementById("create").onclick = () => {
+      const name = document.getElementById("docName").value.trim();
+      if (!name) {
+        alert("Enter a document name");
+        return;
+      }
+
+      const docId = slugify(name);
+      window.location.href = `/doc/${docId}`;
+    };
+
+    document.getElementById("join").onclick = () => {
+      const id = document.getElementById("docId").value.trim();
+      if (!id) {
+        alert("Enter a document code");
+        return;
+      }
+
+      window.location.href = `/doc/${id}`;
+    };
+
+    document.getElementById("logout").onclick = () => {
+      localStorage.removeItem("user");
+      window.location.href = "/login.html";
+    };
+  </script>
+
+</body>
+</html>

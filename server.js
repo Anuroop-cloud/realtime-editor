@@ -7,7 +7,7 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.static("public", { index: false }));
 
 const documents = {};
 
@@ -20,6 +20,11 @@ app.delete("/doc/:id", (req, res) => {
   delete documents[id];
   res.sendStatus(200);
 });
+
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/public/home.html");
+});
+
 
 io.on("connection", (socket) => {
   socket.on("join-doc", ({ docId, username }) => {
@@ -46,6 +51,14 @@ io.on("connection", (socket) => {
     if (socket.docId && socket.username) {
       socket.to(socket.docId).emit("user-left", socket.username);
     }
+  });
+
+  socket.on("leave-doc", ({ docId, username }) => {
+    if (!docId) return;
+
+    socket.leave(docId);
+    socket.docId = null;
+    socket.to(docId).emit("user-left", username || socket.username);
   });
 });
 
