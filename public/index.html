@@ -39,15 +39,17 @@
     const usersEl = document.getElementById("users");
     const deleteBtn = document.getElementById("delete");
 
+    const username = localStorage.getItem("user");
+    if (!username) {
+      window.location.href = "/login.html";
+    }
+
     const docId = window.location.pathname.split("/").pop();
 
-    const user = localStorage.getItem("user");
-    if (!user){
-        window.location.href = "/login.html";
-    }
     let isRemoteUpdate = false;
 
-    socket.emit("join-doc", docId);
+    // join document room with username
+    socket.emit("join-doc", { docId, username });
 
     socket.on("users", (count) => {
       usersEl.innerText = count;
@@ -70,6 +72,14 @@
       isRemoteUpdate = true;
       editor.value = text;
       isRemoteUpdate = false;
+    });
+
+    socket.on("user-joined", (name) => {
+      console.log(`${name} joined`);
+    });
+
+    socket.on("user-left", (name) => {
+      console.log(`${name} left`);
     });
 
     deleteBtn.onclick = async () => {
