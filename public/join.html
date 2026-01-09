@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Document</title>
+</head>
+<body>
+    <h2>Join a Document</h2>
+
+    <input id="docId" placeholder="Enetr doc ID"/>
+    <button id="join">Join</button>
+
+    <script>
+        const user = localStorage.getItem("user");
+        if(!user){
+            window.location.href = "/login.html";
+        }
+
+        document.getElementById("join").onclick=()=>{
+            const docId = document.getElementById("docId").value.trim();
+
+            if (!docId) return alert("Enter doc ID");
+            window.location.href = `/doc/${docId}`;
+        };
+    </script>
+</body>
+</html>

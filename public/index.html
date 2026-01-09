@@ -41,6 +41,10 @@
 
     const docId = window.location.pathname.split("/").pop();
 
+    const user = localStorage.getItem("user");
+    if (!user){
+        window.location.href = "/login.html";
+    }
     let isRemoteUpdate = false;
 
     socket.emit("join-doc", docId);
