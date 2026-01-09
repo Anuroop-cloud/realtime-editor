@@ -6,11 +6,10 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static("public"));
 app.use(express.json());
+app.use(express.static("public"));
 
 const documents = {};
-let users = 0;
 
 app.get("/doc/:id", (req, res) => {
   res.sendFile(__dirname + "/public/index.html");
@@ -23,21 +22,16 @@ app.delete("/doc/:id", (req, res) => {
 });
 
 io.on("connection", (socket) => {
-  users++;
-  io.emit("users", users);
-
   socket.on("join-doc", ({ docId, username }) => {
     if (!documents[docId]) {
       documents[docId] = { content: "" };
     }
 
     socket.join(docId);
-
-    socket.username = username;
     socket.docId = docId;
+    socket.username = username;
 
     socket.emit("load-doc", documents[docId].content);
-
     socket.to(docId).emit("user-joined", username);
   });
 
@@ -49,9 +43,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    users--;
-    io.emit("users", users);
-
     if (socket.docId && socket.username) {
       socket.to(socket.docId).emit("user-left", socket.username);
     }
