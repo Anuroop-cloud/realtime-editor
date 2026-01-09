@@ -7,13 +7,24 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 app.use(express.static("public"));
+app.use(express.json());
 
 const documents = {};
 let users = 0;
 
-io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
+// serve document page for any doc id
+app.get("/doc/:id", (req, res) => {
+  res.sendFile(__dirname + "/public/index.html");
+});
 
+// delete document
+app.delete("/doc/:id", (req, res) => {
+  const { id } = req.params;
+  delete documents[id];
+  res.sendStatus(200);
+});
+
+io.on("connection", (socket) => {
   users++;
   io.emit("users", users);
 
@@ -34,8 +45,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-
     users--;
     io.emit("users", users);
   });

@@ -1,57 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Realtime Editor MVP</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
-        textarea {
-            width: 100%;
-            font-size: 16px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Realtime Editor MVP</title>
 
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    textarea {
+      width: 100%;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    button {
+      margin-top: 10px;
+    }
+  </style>
 </head>
+
 <body>
-    <h2>Realtime Editor MVP</h2>
-    <p>Connected users: <span id="users">1</span></p>
+  <h2>Realtime Editor MVP</h2>
 
-    <textarea id="editor" rows="15" cols="80"></textarea>
+  <p>Connected users: <span id="users">0</span></p>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io();
-        const editor = document.getElementById("editor");
-        const usersEl = document.getElementById("users");
+  <button id="delete">Delete Document</button>
 
-        const docId = "default"; // both tabs MUST use same docId
+  <textarea id="editor" rows="15"></textarea>
 
-        socket.emit("join-doc", docId);
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const editor = document.getElementById("editor");
+    const usersEl = document.getElementById("users");
+    const deleteBtn = document.getElementById("delete");
 
-        socket.on("users", (count) => {
-            usersEl.innerText = count;
-        });
+    const docId = window.location.pathname.split("/").pop();
 
-        socket.on("load-doc", (text) => {
-            editor.value = text;
-        });
+    let isRemoteUpdate = false;
 
-        editor.addEventListener("input", () => {
-            socket.emit("text-change", {
-            docId,
-            text: editor.value
-            });
-        });
+    socket.emit("join-doc", docId);
 
-        socket.on("text-change", (text) => {
-            editor.value = text;
-        });
-    </script>
+    socket.on("users", (count) => {
+      usersEl.innerText = count;
+    });
 
+    socket.on("load-doc", (text) => {
+      editor.value = text;
+    });
 
+    editor.addEventListener("input", () => {
+      if (isRemoteUpdate) return;
+
+      socket.emit("text-change", {
+        docId,
+        text: editor.value
+      });
+    });
+
+    socket.on("text-change", (text) => {
+      isRemoteUpdate = true;
+      editor.value = text;
+      isRemoteUpdate = false;
+    });
+
+    deleteBtn.onclick = async () => {
+      await fetch(`/doc/${docId}`, { method: "DELETE" });
+      alert("Document deleted");
+      window.location.href = "/";
+    };
+  </script>
 </body>
 </html>
