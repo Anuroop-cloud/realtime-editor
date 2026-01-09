@@ -27,10 +27,11 @@
 <body>
   <h2>Realtime Editor MVP</h2>
 
-  <p>Connected users: <span id="users">0</span></p>
+  <p>Viewers: <span id="users">0</span></p>
 
   <button id="logout">Logout</button>
   <button id="leave">Leave Room</button>
+  <button id="delete" style="display: none;">Delete Document</button>
 
   <textarea id="editor" rows="15"></textarea>
 
@@ -40,6 +41,7 @@
     const editor = document.getElementById("editor");
     const usersEl = document.getElementById("users");
     const leaveBtn = document.getElementById("leave");
+    const deleteBtn = document.getElementById("delete");
     const logoutBtn = document.getElementById("logout");
 
     const username = localStorage.getItem("user");
@@ -57,8 +59,16 @@
       usersEl.innerText = count;
     });
 
-    socket.on("load-doc", (text) => {
-      editor.value = text;
+    socket.on("load-doc", ({ content, creator, viewers }) => {
+      editor.value = content || "";
+      usersEl.innerText = viewers || 0;
+
+      const isCreator = creator && creator === username;
+      deleteBtn.style.display = isCreator ? "inline-block" : "none";
+    });
+
+    socket.on("viewers", (count) => {
+      usersEl.innerText = count;
     });
 
     editor.addEventListener("input", () => {
@@ -86,6 +96,27 @@
 
     leaveBtn.onclick = () => {
       socket.emit("leave-doc", { docId, username });
+      window.location.href = "/";
+    };
+
+    deleteBtn.onclick = async () => {
+      const res = await fetch(`/doc/${docId}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username })
+      });
+
+      if (res.status === 403) {
+        alert("Only the creator can delete this document");
+        return;
+      }
+
+      if (!res.ok) {
+        alert("Unable to delete document");
+        return;
+      }
+
+      alert("Document deleted");
       window.location.href = "/";
     };
 

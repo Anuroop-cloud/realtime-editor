@@ -11,14 +11,32 @@ app.use(express.static("public", { index: false }));
 
 const documents = {};
 
+function updateViewerCount(docId) {
+  const doc = documents[docId];
+  if (!doc) return;
+  const count = doc.viewers ? doc.viewers.size : 0;
+  io.to(docId).emit("viewers", count);
+}
+
 app.get("/doc/:id", (req, res) => {
   res.sendFile(__dirname + "/public/index.html");
 });
 
 app.delete("/doc/:id", (req, res) => {
   const { id } = req.params;
+  const { username } = req.body || {};
+  const doc = documents[id];
+
+  if (!doc) {
+    return res.sendStatus(404);
+  }
+
+  if (doc.creator && doc.creator !== username) {
+    return res.sendStatus(403);
+  }
+
   delete documents[id];
-  res.sendStatus(200);
+  return res.sendStatus(200);
 });
 
 app.get("/", (req, res) => {
@@ -29,15 +47,21 @@ app.get("/", (req, res) => {
 io.on("connection", (socket) => {
   socket.on("join-doc", ({ docId, username }) => {
     if (!documents[docId]) {
-      documents[docId] = { content: "" };
+      documents[docId] = { content: "", creator: username, viewers: new Set() };
     }
+
+    const doc = documents[docId];
+    if (!doc.viewers) doc.viewers = new Set();
+
+    doc.viewers.add(socket.id);
 
     socket.join(docId);
     socket.docId = docId;
     socket.username = username;
 
-    socket.emit("load-doc", documents[docId].content);
+    socket.emit("load-doc", { content: doc.content, creator: doc.creator, viewers: doc.viewers.size });
     socket.to(docId).emit("user-joined", username);
+    updateViewerCount(docId);
   });
 
   socket.on("text-change", ({ docId, text }) => {
@@ -49,16 +73,27 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     if (socket.docId && socket.username) {
+      const doc = documents[socket.docId];
+      if (doc && doc.viewers) {
+        doc.viewers.delete(socket.id);
+      }
       socket.to(socket.docId).emit("user-left", socket.username);
+      updateViewerCount(socket.docId);
     }
   });
 
   socket.on("leave-doc", ({ docId, username }) => {
     if (!docId) return;
 
+    const doc = documents[docId];
+    if (doc && doc.viewers) {
+      doc.viewers.delete(socket.id);
+    }
+
     socket.leave(docId);
     socket.docId = null;
     socket.to(docId).emit("user-left", username || socket.username);
+    updateViewerCount(docId);
   });
 });
 
