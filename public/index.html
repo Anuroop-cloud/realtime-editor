@@ -28,6 +28,7 @@
   <h2>Realtime Editor MVP</h2>
 
   <p>Viewers: <span id="users">0</span></p>
+  <p>Logged in as: <span id="currentUser">-</span></p>
 
   <button id="logout">Logout</button>
   <button id="leave">Leave Room</button>
@@ -43,11 +44,14 @@
     const leaveBtn = document.getElementById("leave");
     const deleteBtn = document.getElementById("delete");
     const logoutBtn = document.getElementById("logout");
+    const currentUserEl = document.getElementById("currentUser");
 
-    const username = localStorage.getItem("user");
+    const username = sessionStorage.getItem("user");
     if (!username) {
       window.location.href = "/login.html";
     }
+
+    currentUserEl.innerText = username || "-";
 
     const docId = window.location.pathname.split("/").pop();
 
@@ -121,7 +125,7 @@
     };
 
     logoutBtn.onclick = () => {
-      localStorage.removeItem("user");
+      sessionStorage.removeItem("user");
       window.location.href = "/login.html";
     };
   </script>

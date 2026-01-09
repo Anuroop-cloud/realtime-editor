@@ -58,7 +58,7 @@
   </div>
 
   <script>
-    const currentUser = localStorage.getItem("user");
+    const currentUser = sessionStorage.getItem("user");
     if (!currentUser) {
       window.location.href = "/login.html";
     } else {
@@ -97,7 +97,7 @@
     };
 
     document.getElementById("logout").onclick = () => {
-      localStorage.removeItem("user");
+      sessionStorage.removeItem("user");
       window.location.href = "/login.html";
     };
   </script>

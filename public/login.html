@@ -10,17 +10,20 @@
     <input id="username" placeholder="Enter username" />
     <button id="login">continue</button>
     <script>
-        const existingUser = localStorage.getItem("user");
-        if (existingUser) {
-            window.location.href = "/";
-        }
+        // Always start fresh on the login page
+        sessionStorage.removeItem("user");
+        localStorage.removeItem("user"); // clean up from older version
+
+        const usernameInput = document.getElementById("username");
+        usernameInput.value = "";
+        usernameInput.focus();
 
         document.getElementById("login").onclick = () =>{
-            const username = document.getElementById("username").value.trim();
+            const username = usernameInput.value.trim();
 
             if(!username) return alert("Enter username");
 
-            localStorage.setItem("user",username);
+            sessionStorage.setItem("user",username);
             window.location.href = "/";
         };
     </script>
