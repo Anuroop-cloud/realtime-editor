@@ -12,12 +12,10 @@ app.use(express.json());
 const documents = {};
 let users = 0;
 
-// serve document page for any doc id
 app.get("/doc/:id", (req, res) => {
   res.sendFile(__dirname + "/public/index.html");
 });
 
-// delete document
 app.delete("/doc/:id", (req, res) => {
   const { id } = req.params;
   delete documents[id];
@@ -28,13 +26,19 @@ io.on("connection", (socket) => {
   users++;
   io.emit("users", users);
 
-  socket.on("join-doc", (docId) => {
+  socket.on("join-doc", ({ docId, username }) => {
     if (!documents[docId]) {
       documents[docId] = { content: "" };
     }
 
     socket.join(docId);
+
+    socket.username = username;
+    socket.docId = docId;
+
     socket.emit("load-doc", documents[docId].content);
+
+    socket.to(docId).emit("user-joined", username);
   });
 
   socket.on("text-change", ({ docId, text }) => {
@@ -47,6 +51,10 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     users--;
     io.emit("users", users);
+
+    if (socket.docId && socket.username) {
+      socket.to(socket.docId).emit("user-left", socket.username);
+    }
   });
 });
 
