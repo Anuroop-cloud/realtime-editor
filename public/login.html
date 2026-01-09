@@ -4,11 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            color: #00a693;
+            font-family: Arial, sans-serif;
+        }
+        .wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 280px;
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #00a693;
+            background: transparent;
+            color: #00a693;
+        }
+        input::placeholder {
+            color: #00a693;
+            opacity: 0.8;
+            text-align: center;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
+            background: transparent;
+            color: #00a693;
+            border: 1px solid #00a693;
+            cursor: pointer;
+        }
+        button:hover {
+            background: rgba(0, 166, 147, 0.1);
+        }
+        h2 {
+            margin: 0;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-    <h2>Login</h2>
-    <input id="username" placeholder="Enter username" />
-    <button id="login">continue</button>
+    <div class="wrap">
+        <h2>Login</h2>
+        <input id="username" placeholder="Enter username" />
+        <button id="login">continue</button>
+    </div>
     <script>
         // Always start fresh on the login page
         sessionStorage.removeItem("user");
@@ -24,7 +71,7 @@
             if(!username) return alert("Enter username");
 
             sessionStorage.setItem("user",username);
-            window.location.href = "/";
+            window.location.href = "/home.html";
         };
     </script>
 </body>

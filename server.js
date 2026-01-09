@@ -46,6 +46,10 @@ app.delete("/doc/:id", (req, res) => {
 });
 
 app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/public/landing.html");
+});
+
+app.get("/home", (req, res) => {
   res.sendFile(__dirname + "/public/home.html");
 });
 
